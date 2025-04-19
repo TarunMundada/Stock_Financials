@@ -66,5 +66,21 @@ class Scraper:
             balance_sheet.update(row_data)
         return balance_sheet
     
-x = Scraper('ADANIENT').get_balance_sheet()
+    def get_cash_flow(self):
+        cash_flow = {}
+        cash_flow_sec = self.soup.find('section', id='cash-flow')
+        cash_flow_table = cash_flow_sec.find('tbody')
+        for row in cash_flow_table.find_all('tr'):
+            tds = row.find_all('td')
+            if not tds:
+                return None
+            row_name = tds[0].text.strip()
+            values = [td.text.strip().replace(",", "") for td in tds[1:]]  # remove commas for numbers
+            
+            row_data =  {row_name: values}
+            cash_flow.update(row_data)
+        return cash_flow
+    
+    
+x = Scraper('ADANIENT').get_cash_flow()
 print(json.dumps(x, indent=4))
