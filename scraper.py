@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import time
 import requests
+import json
 
 class Scraper:
     def __init__(self, ticker):
@@ -54,7 +55,16 @@ class Scraper:
         balance_sheet = {}
         balance_sheet_sec = self.soup.find('section', id='balance-sheet')
         balance_sheet_table = balance_sheet_sec.find('tbody')
-                
-        return(balance_sheet_table)
+        for row in balance_sheet_table.find_all('tr'):
+            tds = row.find_all('td')
+            if not tds:
+                return None
+            row_name = tds[0].text.strip()
+            values = [td.text.strip().replace(",", "") for td in tds[1:]]  # remove commas for numbers
+            
+            row_data =  {row_name: values}
+            balance_sheet.update(row_data)
+        return balance_sheet
     
-print(Scraper('ADANIENT').get_balance_sheet())
+x = Scraper('ADANIENT').get_balance_sheet()
+print(json.dumps(x, indent=4))
