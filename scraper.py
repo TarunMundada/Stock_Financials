@@ -1,7 +1,9 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
+import time
 import requests
-
-
 
 class Scraper:
     def __init__(self, ticker):
@@ -10,11 +12,31 @@ class Scraper:
         self.soup = self.get_soup()
         
     def get_soup(self):
-        response = requests.get(self.url)
-        if response.status_code != 200:
-            raise Exception(f"Failed to load page: {response.status_code}")
-        else:
-            return BeautifulSoup(response.content, 'html.parser')
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+
+        driver = webdriver.Chrome(options=options)
+        driver.get(self.url)
+
+        # Let the page load
+        time.sleep(2)
+
+        # Click all dropdown buttons with class 'button-plain'
+        buttons = driver.find_elements(By.CLASS_NAME, "button-plain")
+        for button in buttons:
+            try:
+                driver.execute_script("arguments[0].click();", button)
+                time.sleep(0.2)  # Give time for dynamic content to load
+            except Exception as e:
+                print(f"Could not click a button: {e}")
+
+        # Get final page source after all dropdowns are expanded
+        html = driver.page_source
+        driver.quit()
+
+        return BeautifulSoup(html, 'html.parser')
         
     def get_company_info(self):
         company_info = {}
@@ -28,5 +50,11 @@ class Scraper:
             
         return(company_info)
     
+    def get_balance_sheet(self):
+        balance_sheet = {}
+        balance_sheet_sec = self.soup.find('section', id='balance-sheet')
+        balance_sheet_table = balance_sheet_sec.find('tbody')
+                
+        return(balance_sheet_table)
     
-print(Scraper('ADANIENT').get_company_info())
+print(Scraper('ADANIENT').get_balance_sheet())
