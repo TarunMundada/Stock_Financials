@@ -81,6 +81,20 @@ class Scraper:
             cash_flow.update(row_data)
         return cash_flow
     
+    def get_profit_loss(self):
+        profit_loss = {}
+        profit_loss_sec = self.soup.find('section', id='profit-loss')
+        profit_loss_table = profit_loss_sec.find('tbody')
+        for row in profit_loss_table.find_all('tr'):
+            tds = row.find_all('td')
+            if not tds:
+                return None
+            row_name = tds[0].text.strip()
+            values = [td.text.strip().replace(",", "") for td in tds[1:]]  # remove commas for numbers
+            
+            row_data =  {row_name: values}
+            profit_loss.update(row_data)
+        return profit_loss
     
-x = Scraper('ADANIENT').get_cash_flow()
+x = Scraper('ADANIENT').get_profit_loss()
 print(json.dumps(x, indent=4))
