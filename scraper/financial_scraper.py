@@ -95,6 +95,8 @@ class Scraper:
             row_data =  {row_name: values}
             profit_loss.update(row_data)
         return profit_loss
-    
+
+
+
 x = Scraper('ADANIENT').get_profit_loss()
 print(json.dumps(x, indent=4))
